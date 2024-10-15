@@ -1,0 +1,17 @@
+node_modules
+.next
+.git
+```
+
+5. Create a `railway.toml` file in the root of your Next.js project:
+
+```toml
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = "npm start"
+
+[[services]]
+name = "web"
