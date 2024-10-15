@@ -1,5 +1,5 @@
 import { cookies } from 'next/headers';
-import {DJANGO_API_ENDPOINT, DJANGO_API_ENDPOINT_LOCAL} from "@/app/config/defaults" 
+import {DJANGO_API_ENDPOINT, DJANGO_API_ENDPOINT_LOCAL} from "@/utils/config/defaults" 
 
 const DJANGO_API_URL = DJANGO_API_ENDPOINT || DJANGO_API_ENDPOINT_LOCAL
 
