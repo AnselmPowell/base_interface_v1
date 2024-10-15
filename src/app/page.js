@@ -1,6 +1,7 @@
 import styles from './styles/Home.module.css'
 import Head from 'next/head'
 import UserList from './components/UserList.client';
+import TestDBList from './components/TestDBList.client';
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
           </p>
           <br/>
           <UserList/>
+          <TestDBList />
       </main>
      
   </div>
