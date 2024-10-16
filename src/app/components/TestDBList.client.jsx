@@ -2,14 +2,18 @@
 
 import { useState, useEffect } from 'react';
 
+
 export default function TESTDB() {
   const [users, setUsers] = useState([]);
   const [newUser, setNewUser] = useState({ first_name: '', last_name: '', email: '' });
   const [isLoading, setIsLoading] = useState(false);
   const [createIsLoading, setCreateIsLoading] = useState(false);
 
+  
+
   useEffect(() => {
     fetchUsers();
+
   }, []);
 
   const fetchUsers = async () => {
