@@ -5,11 +5,61 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cookies } from 'next/headers';
 
+import crypto from 'crypto';
+
 const sql = neon(process.env.POSTGRES_URL);
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const ACCESS_TOKEN_EXPIRY = '15m';
 const REFRESH_TOKEN_EXPIRY = '7d';
+
+
+const CSRF_SECRET = process.env.CSRF_SECRET;
+
+export function generateCSRFToken() {
+  const tokenValue = crypto.randomBytes(32).toString('hex');
+  const timestamp = Date.now();
+  const token = `${tokenValue}|${timestamp}`;
+  const hash = crypto.createHmac('sha256', CSRF_SECRET).update(token).digest('hex');
+  return `${token}|${hash}`;
+}
+
+// The server validates this token before processing the request, adding an extra layer of security to your application.
+// Provides defense against CSRF attacks:
+export function validateCSRFToken(token, storedToken) {
+
+  if (!token || !storedToken) {
+    return false;
+  }
+
+  const [tokenValue, timestamp, hash] = token.split('|');
+
+  // Instead of checking the age, we'll just ensure the tokens match
+  if (token !== storedToken) {
+    return false;
+  }
+
+  // Verify the hash
+  const expectedHash = crypto.createHmac('sha256', CSRF_SECRET).update(`${tokenValue}|${timestamp}`).digest('hex');
+  const hashesMatch = crypto.timingSafeEqual(Buffer.from(hash), Buffer.from(expectedHash));
+
+  return hashesMatch;
+}
+
+
+// set the CSRT Token 
+export function setCSRFTokenCookie(token) {
+  const cookieStore = cookies();
+  cookieStore.set('csrfToken', token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'strict',
+    maxAge: 3600, // 1 hour
+    path: '/',
+  });
+}
+
+
 
 const registerSchema = z.object({
   username: z.string().min(3).max(150),
@@ -21,13 +71,21 @@ const registerSchema = z.object({
 });
 
 const loginSchema = z.object({
-  username: z.string(),
+  email: z.string().email(),
   password: z.string(),
+  csrfToken: z.string().optional(),
 });
 
 export async function register(req) {
   try {
-    const { username, email, password, first_name = '', last_name = '' } = registerSchema.parse(await req.json());
+    const { username, email, password, first_name = '', last_name = '', csrfToken } = registerSchema.parse(await req.json());
+
+    if (!validateCSRFToken(csrfToken)) {
+      return new Response(JSON.stringify({ message: 'Invalid CSRF token' }), {
+        status: 403,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
 
     const existingUser = await sql`SELECT * FROM auth_user WHERE username = ${username} OR email = ${email}`;
     if (existingUser.length > 0) {
@@ -87,9 +145,33 @@ export async function register(req) {
 
 export async function login(req) {
   try {
-    const { username, password } = loginSchema.parse(await req.json());
+    const body = await req.json();
+    const { email, password, csrfToken } = loginSchema.parse(body);
 
-    const [user] = await sql`SELECT * FROM auth_user WHERE username = ${username}`;
+    const cookieStore = cookies();
+    const storedToken = cookieStore.get('csrfToken')?.value;
+
+    if (storedToken) {
+      if (!validateCSRFToken(csrfToken, storedToken)) {
+        return new Response(JSON.stringify({ message: 'Invalid CSRF token' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+    } else {
+      // If there's no stored token, this might be a first-time login or a login after a long time
+      const [tokenValue, timestamp, hash] = csrfToken.split('|');
+      if (!tokenValue || !timestamp || !hash) {
+        return new Response(JSON.stringify({ message: 'Invalid CSRF token format' }), {
+          status: 403,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      // Set the provided token as the new stored token
+      setCSRFTokenCookie(csrfToken);
+    }
+
+    const [user] = await sql`SELECT * FROM auth_user WHERE LOWER(email) = LOWER(${email})`;
 
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return new Response(JSON.stringify({ message: 'Invalid credentials' }), {
@@ -102,10 +184,10 @@ export async function login(req) {
     const refreshToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
 
     const sessionKey = uuidv4();
+  
     await sql`INSERT INTO django_session (session_key, session_data, expire_date) 
-              VALUES (${sessionKey}, ${JSON.stringify({userId: user.id, refreshToken})}, ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)})`;
+    VALUES (${sessionKey}, ${JSON.stringify({userId: user.id, refreshToken})}, ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)})`;
 
-    const cookieStore = cookies();
     cookieStore.set('refreshToken', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -116,11 +198,12 @@ export async function login(req) {
 
     return new Response(JSON.stringify({ 
       accessToken, 
-      user: { id: user.id, username: user.username } 
+      user: { id: user.id, username: user.username, email: user.email } 
     }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
+
   } catch (error) {
     console.error('Login error:', error);
     return new Response(JSON.stringify({ message: 'Login failed', error: error.message }), {
@@ -130,6 +213,7 @@ export async function login(req) {
   }
 }
 
+
 export async function logout(req) {
   const cookieStore = cookies();
   const refreshToken = cookieStore.get('refreshToken')?.value;
@@ -138,8 +222,11 @@ export async function logout(req) {
     try {
       const decoded = jwt.verify(refreshToken, JWT_SECRET);
       await sql`DELETE FROM django_session WHERE session_data LIKE ${'%"userId":' + decoded.userId + '%'}`;
+      
+      // Add the token to the blacklist
+      await sql`INSERT INTO revoked_tokens (token, expiry) VALUES (${refreshToken}, ${new Date(decoded.exp * 1000)})`;
     } catch (error) {
-      console.error('Error deleting session:', error);
+      console.error('Error during logout:', error);
     }
   }
 
@@ -177,19 +264,18 @@ export async function refreshToken(req) {
     const newAccessToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
     const newRefreshToken = jwt.sign({ userId }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
 
-    const newSessionKey = uuidv4();
-    await sql`UPDATE django_session 
-              SET session_key = ${newSessionKey}, 
-                  session_data = ${JSON.stringify({userId, refreshToken: newRefreshToken})}, 
-                  expire_date = ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
-              WHERE session_key = ${session.session_key}`;
+      // Update the session with the new refresh token
+      await sql`UPDATE django_session 
+                SET session_data = ${JSON.stringify({userId, refreshToken: newRefreshToken})}, 
+                    expire_date = ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)}
+                WHERE session_key = ${session.session_key}`;
 
-    cookieStore.set('refreshToken', newRefreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60, // 7 days
-      path: '/',
+      cookieStore.set('refreshToken', newRefreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60, // 7 days
+        path: '/',
     });
 
     return new Response(JSON.stringify({ accessToken: newAccessToken }), {

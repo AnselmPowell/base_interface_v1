@@ -1,6 +1,8 @@
+import { Suspense } from 'react';
 import './styles/globals.css';
 import Navigation from './components/Navigation.client';
 import Footer from './components/Footer.client';
+
 
 export const metadata = {
   title: "Create Next App",
@@ -11,9 +13,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={`antialiased`}>
-        <Navigation />
+        <Suspense fallback={<div>Loading...</div>}>
+          <Navigation />
         {children}
         <Footer/>
+        </Suspense>
       </body>
     </html>
   );

@@ -15,7 +15,7 @@ export function useAuth() {
   const checkAuth = async () => {
     try {
       const res = await fetch('/api/auth/user', {
-        credentials: 'include' // This ensures cookies are sent with the request
+        credentials: 'include'
       });
       if (res.ok) {
         const data = await res.json();
@@ -41,7 +41,7 @@ export function useAuth() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(credentials),
-        credentials: 'include'
+        credentials: 'include' // This ensures cookies are sent with the request
       });
       if (res.ok) {
         const data = await res.json();
