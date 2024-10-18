@@ -5,7 +5,9 @@ import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { cookies } from 'next/headers';
 
+
 import crypto from 'crypto';
+
 
 const sql = neon(process.env.POSTGRES_URL);
 
@@ -170,6 +172,7 @@ export async function login(req) {
       // Set the provided token as the new stored token
       setCSRFTokenCookie(csrfToken);
     }
+    
 
     const [user] = await sql`SELECT * FROM auth_user WHERE LOWER(email) = LOWER(${email})`;
 
@@ -195,7 +198,7 @@ export async function login(req) {
       maxAge: 7 * 24 * 60 * 60, // 7 days
       path: '/',
     });
-
+    
     return new Response(JSON.stringify({ 
       accessToken, 
       user: { id: user.id, username: user.username, email: user.email } 
@@ -229,7 +232,6 @@ export async function logout(req) {
       console.error('Error during logout:', error);
     }
   }
-
   cookieStore.delete('refreshToken');
 
   return new Response(JSON.stringify({ message: 'Logged out successfully' }), {
@@ -355,4 +357,89 @@ export function withAuth(handler) {
       });
     }
   };
+}
+
+
+
+// Google Authenication ##################################################################
+
+
+
+export async function googleLoginRegister(email, name) {
+  const [firstName, ...lastNameParts] = name.split(' ');
+  const lastName = lastNameParts.join(' ');
+  const username = email; // Use email as username for Google-authenticated users
+  const now = new Date().toISOString();
+  const cookieStore = cookies();
+  let csrfToken = cookieStore.get('csrfToken')?.value;
+  if (!csrfToken) {
+    csrfToken = generateCSRFToken();
+    setCSRFTokenCookie(csrfToken);
+  }
+  // Generate a random, unusable password
+  const randomPassword = crypto.randomBytes(16).toString('hex');
+
+  try {
+    const [user] = await sql`
+      INSERT INTO auth_user (
+        username, 
+        email, 
+        first_name, 
+        last_name, 
+        is_active, 
+        date_joined, 
+        password,
+        last_login,
+        is_superuser,
+        is_staff
+      )
+      VALUES (
+        ${username}, 
+        ${email}, 
+        ${firstName}, 
+        ${lastName}, 
+        true, 
+        ${now}, 
+        ${randomPassword},
+        ${null},
+        false,
+        false
+      )
+      ON CONFLICT (username) DO UPDATE SET
+        email = EXCLUDED.email,
+        first_name = EXCLUDED.first_name,
+        last_name = EXCLUDED.last_name,
+        is_active = true
+      RETURNING id, username, email, first_name, last_name, is_active
+    `;
+
+
+    const accessToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: ACCESS_TOKEN_EXPIRY });
+    const refreshToken = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: REFRESH_TOKEN_EXPIRY });
+
+    const sessionKey = uuidv4();
+
+
+    cookieStore.set('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    });
+    
+    await sql`INSERT INTO django_session (session_key, session_data, expire_date) 
+    VALUES (${sessionKey}, ${JSON.stringify({userId: user.id, refreshToken})}, ${new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)})`;
+
+    return new Response(JSON.stringify({ 
+      accessToken, 
+      user: { id: user.id, username: firstName, email: user.email, refreshToken: refreshToken } 
+    }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  } catch (error) {
+    console.error('Error in googleLoginRegister:', error);
+    throw error;
+  }
 }

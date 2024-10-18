@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+
 export function useAuth() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -13,6 +14,7 @@ export function useAuth() {
   }, []);
 
   const checkAuth = async () => {
+    console.log(" CHECK AUTH")
     try {
       const res = await fetch('/api/auth/user', {
         credentials: 'include'
@@ -70,5 +72,25 @@ export function useAuth() {
     }
   };
 
-  return { user, loading, login, logout, checkAuth };
+
+  const googleLogin = async (code) => {
+    
+    try {
+      const response = await fetch(`/api/auth/google/callback?code=${code}`, {
+      method: 'GET',
+      credentials: 'include'
+      });
+      
+      const data = await response.json();
+      setUser(data.user);
+      return data.user
+
+    } catch (error) {
+      console.error('Google login error', error);
+      throw error;
+    }
+  };
+
+
+  return { user, loading, login, logout, googleLogin, checkAuth };
 }

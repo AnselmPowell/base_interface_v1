@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useAuth } from '@/app/hooks/useAuth';
+import { useAuth } from '@/app/contexts/AuthContext.client'
 
 export default function Navigation() {
   const { user, loading, logout } = useAuth();
@@ -11,6 +11,7 @@ export default function Navigation() {
   if (loading) {
     return <nav className="p-4 bg-white-800 text-white">Loading...</nav>;
   }
+
 
   return (
     <nav className="p-4 bg-white-800 text-white flex justify-between items-center">
