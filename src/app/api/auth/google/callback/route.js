@@ -24,7 +24,7 @@ export async function GET(request) {
         path: '/',
       });
     //  Redirect to the home page or dashboard
-    return NextResponse.redirect(new URL('https://baseinterfacev1-production.up.railway.app', request.url));
+    return NextResponse.redirect(new URL( process.env.NEXT_PUBLIC_REDIRECT_URL, request.url));
         
 
   } catch (error) {
