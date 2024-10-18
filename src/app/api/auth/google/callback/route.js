@@ -15,8 +15,6 @@ export async function GET(request) {
     const response = await googleLoginRegister(googleUser.email, googleUser.name);
     const data = await response.json()
     const cookieStore = cookies();
-    console.log(" AUTH Callback Cookies", cookieStore)
-    console.log(" AUTH Callback refresh!!!!", data.user.refreshToken)
     cookieStore.set('refreshToken', data.user.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
@@ -26,7 +24,7 @@ export async function GET(request) {
         path: '/',
       });
     //  Redirect to the home page or dashboard
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL('https://baseinterfacev1-production.up.railway.app', request.url));
         
 
   } catch (error) {
