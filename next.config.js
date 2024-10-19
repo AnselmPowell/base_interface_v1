@@ -5,8 +5,16 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.DJANGO_BASE_URL || 'https://your-Backend-url.railway.app'}/api/:path*`,
+        destination: `${process.env.DJANGO_BASE_URL || 'https://web-production-040d2.up.railway.app'}/api/:path*`,
       },
+      {
+        source: '/login',
+        destination: '/pages/login',
+      },
+      {
+        source: '/register',
+        destination: '/pages/register',
+      }
     ];
   },
   env: {
