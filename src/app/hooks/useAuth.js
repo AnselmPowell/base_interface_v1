@@ -90,6 +90,7 @@ export function useAuth() {
     }
   };
 
+
   const microsoftLogin = async () => {
     try {
       const response = await fetch('/api/auth/microsoft/url');

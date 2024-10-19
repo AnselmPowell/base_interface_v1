@@ -5,7 +5,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: `${process.env.DJANGO_BASE_URL || 'https://web-production-040d2.up.railway.app'}/api/:path*`,
+        destination: `${process.env.DJANGO_BASE_URL || 'https://basedatastorev1-production.up.railway.app'}/api/:path*`,
       },
       {
         source: '/login',

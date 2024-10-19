@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@azure/msal-browser": "^3.26.1",
     "@azure/msal-node": "^2.15.0",
     "@neondatabase/serverless": "^0.10.1",
     "bcrypt": "^5.1.1",

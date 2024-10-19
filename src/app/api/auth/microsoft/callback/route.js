@@ -17,8 +17,6 @@ export async function GET(request) {
         const cookieStore = cookies();
         const codeVerifier = cookieStore.get('codeVerifier')?.value;
 
- 
-
         if (!codeVerifier) {
             console.error('No code verifier found in cookies');
             return NextResponse.json({ error: 'Authentication failed', details: 'No code verifier found' }, { status: 400 });
@@ -32,7 +30,6 @@ export async function GET(request) {
         };
 
         const response = await msalInstance.acquireTokenByCode(tokenRequest);
-
         const { account } = response;
 
         const email = account.username || account.idTokenClaims.email;
@@ -44,11 +41,10 @@ export async function GET(request) {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'lax',
-            maxAge: 7 * 24 * 60 * 60, // 7 days
+            maxAge: 7 * 24 * 60 * 60,
             path: '/',
         });
 
-        // Clear the codeVerifier cookie
         cookieStore.delete('codeVerifier');
 
         return NextResponse.redirect(new URL('/', request.url));

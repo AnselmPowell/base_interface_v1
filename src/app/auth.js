@@ -444,7 +444,6 @@ export async function googleLoginRegister(email, name) {
   }
 }
 
-
 export async function microsoftLoginRegister(email, name) {
   const [firstName, ...lastNameParts] = name.split(' ');
   const lastName = lastNameParts.join(' ');
