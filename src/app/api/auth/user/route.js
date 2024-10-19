@@ -1,5 +1,8 @@
+<<<<<<< HEAD
 export const dynamic = 'force-dynamic';
 
+=======
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
 import { neon } from '@neondatabase/serverless';
@@ -38,6 +41,10 @@ export async function GET() {
       throw new Error('User not found');
     }
   } catch (error) {
+<<<<<<< HEAD
+=======
+    console.log(" AUTH USER Get user Fail--------------------------------------------------")
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
     console.error('Error getting current user:', error);
     return new Response(JSON.stringify({ message: 'No user logged in' }), {
       status: 200,

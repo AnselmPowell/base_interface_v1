@@ -9,6 +9,13 @@ import { useAuth } from '@/app/contexts/AuthContext.client';
 
 export default function HomePage() {
   const { user, checkAuth } = useAuth();
+<<<<<<< HEAD
+=======
+  setTimeout(() => {
+    // checkAuth()
+    // console.log("PAGE REFRESH!", user)
+  }, 3000);
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
 
   return (
     <div className={styles.container}>

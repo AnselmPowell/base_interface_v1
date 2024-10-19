@@ -4,7 +4,10 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext.client';
 import { FcGoogle } from 'react-icons/fc'; // Import Google icon
+<<<<<<< HEAD
 import { TfiMicrosoftAlt } from "react-icons/tfi";
+=======
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
@@ -15,7 +18,10 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { googleLogin, login, checkAuth } = useAuth();
+<<<<<<< HEAD
   const [isLoading, setIsLoading] = useState(false);
+=======
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
 
   useEffect(() => {
     fetch('/api/auth/csrf')
@@ -140,6 +146,7 @@ export default function LoginForm() {
               <button
                 onClick={handleGoogleLogin}
                 className="w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 ease-in-out"
+<<<<<<< HEAD
                 >
                 <FcGoogle className="h-5 w-5 mr-2" />
                 Sign in with Google
@@ -158,6 +165,13 @@ export default function LoginForm() {
 
             </div>
             
+=======
+              >
+                <FcGoogle className="h-5 w-5 mr-2" />
+                Sign in with Google
+              </button>
+            </div>
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
           </div>
 
           <div className="mt-6">

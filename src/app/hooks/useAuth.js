@@ -90,6 +90,7 @@ export function useAuth() {
     }
   };
 
+<<<<<<< HEAD
   const microsoftLogin = async () => {
     try {
       const response = await fetch('/api/auth/microsoft/url');
@@ -104,4 +105,8 @@ export function useAuth() {
   // Include microsoftLogin in the return statement
   return { user, loading, login, logout, googleLogin, microsoftLogin, checkAuth };
 
+=======
+
+  return { user, loading, login, logout, googleLogin, checkAuth };
+>>>>>>> b2f94e2d080bde926c0dfacf4f56429cb5754964
 }
