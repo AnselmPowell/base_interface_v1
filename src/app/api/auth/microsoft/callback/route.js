@@ -47,7 +47,7 @@ export async function GET(request) {
 
         cookieStore.delete('codeVerifier');
 
-        return NextResponse.redirect(new URL('/', request.url));
+        return NextResponse.redirect(new URL(process.env.NEXT_PUBLIC_REDIRECT_URL, request.url));
     } catch (error) {
         console.error('Microsoft authentication error:', error);
         return NextResponse.json({ error: 'Authentication failed', details: error.message }, { status: 500 });
