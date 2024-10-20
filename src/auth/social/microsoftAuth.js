@@ -30,6 +30,7 @@ export async function getMicrosoftAuthUrl() {
     };
 
     const response = await msalInstance.getAuthCodeUrl(authCodeUrlParameters);
+    
     return { url: response, codeVerifier: verifier };
   } catch (error) {
     console.error("Error generating auth URL:", error);

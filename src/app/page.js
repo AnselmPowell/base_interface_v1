@@ -2,9 +2,8 @@
 
 'use client';
 import Head from 'next/head'
-import styles from './styles/Home.module.css';
+import styles from './styles/Main.module.css';
 import UserList from './components/UserList.client';
-import TestDBList from './components/TestDBList.client';
 import { useAuth } from '@/app/contexts/AuthContext.client';
 
 export default function HomePage() {
@@ -26,7 +25,6 @@ export default function HomePage() {
         <br/>
       </p>}
       <UserList />
-      <TestDBList />
     </div>
   );
 }

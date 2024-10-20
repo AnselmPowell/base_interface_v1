@@ -1,8 +1,6 @@
 'use client';
 
-import styles from '../styles/Home.module.css'
-import { useState, useEffect } from 'react';
-
+import styles from '../../styles/Main.module.css'
 
 export default function Footer() {
     

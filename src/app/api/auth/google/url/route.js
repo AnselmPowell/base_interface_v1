@@ -1,4 +1,4 @@
-import { getGoogleAuthUrl } from '@/app/googleAuth';
+import { getGoogleAuthUrl } from '@/auth/social/googleAuth';
 
 export async function GET() {
   const url = getGoogleAuthUrl();
@@ -6,3 +6,6 @@ export async function GET() {
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
+
+

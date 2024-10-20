@@ -1,7 +1,7 @@
 
 import { NextResponse } from 'next/server';
-import { getGoogleUser } from '@/app/googleAuth';
-import { googleLoginRegister } from '@/app/auth';
+import { getGoogleUser } from '@/auth/social/googleAuth';
+import { googleLoginRegister } from '@/auth/core/auth';
 import { cookies } from 'next/headers';
 
 export async function GET(request) {
@@ -9,7 +9,7 @@ export async function GET(request) {
   if (!code) {
     return NextResponse.json({ error: 'No code provided' }, { status: 400 });
   }
-
+  
   try {
     const googleUser = await getGoogleUser(code);
     const response = await googleLoginRegister(googleUser.email, googleUser.name);

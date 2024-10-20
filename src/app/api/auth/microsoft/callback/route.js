@@ -1,8 +1,8 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { msalInstance } from '@/app/microsoftAuth';
-import { microsoftLoginRegister } from '@/app/auth';
+import { msalInstance } from '@/auth/social/microsoftAuth';
+import { microsoftLoginRegister } from '@/auth/core/auth';
 import { cookies } from 'next/headers';
 
 export async function GET(request) {

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { NextResponse } from 'next/server';
-import { getMicrosoftAuthUrl } from '@/app/microsoftAuth';
+import { getMicrosoftAuthUrl } from '@/auth/social/microsoftAuth';
 import { cookies } from 'next/headers';
 
 export async function GET() {

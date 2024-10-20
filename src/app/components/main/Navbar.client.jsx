@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext.client'
 
-export default function Navigation() {
+export default function Navbar() {
   const { user, loading, logout } = useAuth();
 
   console.log("In the Navigation Test User Information:", user)

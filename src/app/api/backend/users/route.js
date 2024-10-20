@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import fetchApi from '../fetchApi';
+import fetchApi from '../datastoreApi';
 
 export async function GET() {
     try {

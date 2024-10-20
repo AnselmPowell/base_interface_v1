@@ -1,4 +1,4 @@
-import { generateCSRFToken, setCSRFTokenCookie } from '@/app/auth';
+import { generateCSRFToken, setCSRFTokenCookie } from '@/auth/core/auth';
 import { cookies } from 'next/headers';
 
 export async function GET() {

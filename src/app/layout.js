@@ -2,8 +2,8 @@
 
 import { Suspense } from 'react';
 import './styles/globals.css';
-import Navigation from './components/Navigation.client';
-import Footer from './components/Footer.client';
+import Navbar from './components/main/Navbar.client';
+import Footer from './components/main/Footer.client';
 import { AuthProvider } from './contexts/AuthContext.client';
 
 export default function RootLayout({ children }) {
@@ -12,7 +12,7 @@ export default function RootLayout({ children }) {
       <body>
         <AuthProvider>
           <Suspense fallback={<div>Loading...</div>}>
-            <Navigation />
+            <Navbar />
                {children}
            <Footer/>
          </Suspense>
